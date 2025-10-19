@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portal · simone</title>
+  <meta name="description" content="Base project home" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #0f172a; /* slate-900 */
+      --muted: #475569; /* slate-600 */
+      --card: #f8fafc; /* slate-50 */
+      --border: #e2e8f0; /* slate-200 */
+      --brand: #2563eb; /* blue-600 */
+      --brand-weak: #dbeafe; /* blue-100 */
+      --radius: 18px;
+      --shadow: 0 8px 30px rgba(2, 6, 23, 0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --fg: #e5e7eb;
+        --muted: #9aa4b2;
+        --card: #0f172a;
+        --border: #1f2937;
+        --brand: #60a5fa;
+        --brand-weak: #1e293b;
+        --shadow: 0 8px 30px rgba(0,0,0,0.35);
+      }
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+            Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    .container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    header { position: sticky; top: 0; backdrop-filter: saturate(140%) blur(6px); background: color-mix(in oklab, var(--bg) 85%, transparent); border-bottom: 1px solid var(--border); z-index: 10; }
+    header .container { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+      background: var(--brand-weak);
+      box-shadow: inset 0 0 0 1px var(--border);
+      font-weight: 800;
+      color: var(--brand);
+    }
+    h1 { font-size: clamp(24px, 4vw, 36px); line-height: 1.2; margin: 8px 0 0; }
+    .lead { color: var(--muted); margin: 6px 0 0 0; }
+
+    .hero { padding: 32px 0 12px; }
+
+    .controls { display: flex; gap: 12px; align-items: center; margin: 18px 0 6px; }
+    .search {
+      flex: 1;
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow);
+    }
+    .search input { border: 0; outline: none; background: transparent; color: var(--fg); width: 100%; font-size: 15px; }
+    .search svg { opacity: .7; }
+
+    .sites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px; margin-top: 14px;
+    }
+    .card {
+      display: block; text-decoration: none; color: inherit;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+      box-shadow: var(--shadow);
+    }
+    .card:focus-visible { outline: 3px solid color-mix(in oklab, var(--brand) 60%, transparent); outline-offset: 2px; }
+    .card:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--brand) 40%, var(--border)); }
+    .card .emoji { font-size: 24px; }
+    .card h3 { margin: 10px 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .note { margin-top: 22px; font-size: 14px; color: var(--muted); }
+    footer { margin: 40px 0 20px; color: var(--muted); font-size: 13px; text-align: center; }
+    .pill { display:inline-block; font-size:12px; padding:4px 8px; border-radius:999px; background: var(--brand-weak); color: var(--brand); border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div class="logo" aria-hidden="true">GP</div>
+      <div>
+        <h1>My portal</h1>
+        <p class="lead">Project jumper <span class="pill">Host</span></p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" aria-labelledby="lista-siti-heading">
+      <h2 id="lista-siti-heading" class="visually-hidden" style="position:absolute;left:-9999px;">List</h2>
+
+      <div class="controls">
+        <label class="search" aria-label="Search project">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input id="q" type="search" placeholder="Search project by name or description…" autocomplete="off" />
+        </label>
+      </div>
+
+      <div class="sites-grid" id="sites">
+        <!-- Main entry for button sites-->
+        <a class="card" href="/siti/blog/" data-name="Green" data-desc="Green Gen">
+          <div class="emoji" aria-hidden="true">🍏</div>
+          <h3>Green</h3>
+          <p>:)</p>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> · <a href="/" style="color:inherit">simone</a></p>
+  </footer>
+
+  <script>
+    (function(){
+      const q = document.getElementById('q');
+      const list = document.getElementById('sites');
+      const cards = Array.from(list.querySelectorAll('.card'));
+      function normalize(s){ return (s||'').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,''); }
+      function filter(){
+        const term = normalize(q.value);
+        cards.forEach(card => {
+          const text = normalize(card.dataset.name + ' ' + card.dataset.desc);
+          card.style.display = text.includes(term) ? '' : 'none';
+        });
+      }
+      q.addEventListener('input', filter);
+      document.getElementById('year').textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>

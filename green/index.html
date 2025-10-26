@@ -100,7 +100,7 @@
       gap: 12px;
       margin-top: 12px;
     }
-    .input-group input[type="number"] {
+    .input-group input {
       padding: 10px 12px;
       font-size: 15px;
       border: 1px solid var(--border);
@@ -110,7 +110,7 @@
       box-sizing: border-box;
       outline: none;
     }
-    .input-group button {
+    .primary-btn {
       align-self: flex-start;
       padding: 10px 20px;
       font-size: 15px;
@@ -123,13 +123,48 @@
       box-shadow: var(--shadow);
       transition: transform .14s ease, box-shadow .14s ease;
     }
-    .input-group button:hover {
+    .primary-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
     }
-    .input-group button:active {
+    .primary-btn:active {
       transform: translateY(0);
       box-shadow: var(--shadow);
+    }
+    .primary-btn:focus-visible {
+      outline: 3px solid color-mix(in oklab, var(--brand) 60%, transparent);
+      outline-offset: 2px;
+    }
+    .field-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .field-row input {
+      flex: 1;
+    }
+    .ghost-btn {
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: calc(var(--radius) / 2);
+      border: 1px dashed var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .14s ease, color .14s ease, background .14s ease;
+    }
+    .ghost-btn:hover,
+    .ghost-btn:focus-visible {
+      border-color: var(--brand);
+      color: var(--brand);
+      background: color-mix(in oklab, var(--brand-weak) 60%, transparent);
+    }
+    .ghost-btn.fallback-active {
+      border-style: solid;
+      border-color: var(--brand);
+      color: var(--brand);
+      background: color-mix(in oklab, var(--brand-weak) 80%, transparent);
     }
     /* QR display styling */
     #qr-container {
@@ -174,8 +209,15 @@
     <section class="hero">
       <div class="card">
         <div class="input-group">
-          <input type="number" id="number-input" placeholder="Digita un numero" />
-          <button id="generate-btn">Generate</button>
+          <div class="field-row">
+            <input type="number" id="number-input" placeholder="Enter client ID" aria-label="Enter client ID" />
+            <button type="button" id="admin-btn" class="ghost-btn">Admin mode</button>
+          </div>
+          <div class="field-row">
+            <input type="date" id="date-input" aria-label="Enter membership expiration date" title="Enter membership expiration date" placeholder="Enter membership expiration date" />
+            <button type="button" id="fallback-btn" class="ghost-btn" aria-pressed="false">Lifetime membership</button>
+          </div>
+          <button type="button" id="generate-btn" class="primary-btn">Generate</button>
         </div>
         <div id="qr-container">
           <canvas id="qr-canvas"></canvas>
@@ -192,13 +234,113 @@
     (function(){
       // Initialize a reusable QRious instance
       let qr;
+      const numberInput = document.getElementById('number-input');
+      const dateInput = document.getElementById('date-input');
+      const adminBtn = document.getElementById('admin-btn');
+      const fallbackBtn = document.getElementById('fallback-btn');
+      const generateBtn = document.getElementById('generate-btn');
+      let fallbackCenterId = null;
+
+      // Convert ISO date (YYYY-MM-DD) string to epoch milliseconds at Europe/Rome midnight
+      function dateToRomeTimestamp(isoDate) {
+        if (!isoDate) {
+          return null;
+        }
+        const parts = isoDate.split('-');
+        if (parts.length !== 3) {
+          return null;
+        }
+        const year = Number(parts[0]);
+        const month = Number(parts[1]);
+        const day = Number(parts[2]);
+        if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+          return null;
+        }
+        const baseUtc = Date.UTC(year, month - 1, day);
+        const probeDate = new Date(baseUtc);
+        // ensure parsed date did not overflow (e.g. 2026-02-30)
+        if (
+          probeDate.getUTCFullYear() !== year ||
+          probeDate.getUTCMonth() !== month - 1 ||
+          probeDate.getUTCDate() !== day
+        ) {
+          return null;
+        }
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'Europe/Rome',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+          timeZoneName: 'shortOffset'
+        });
+        const partsWithOffset = formatter.formatToParts(probeDate);
+        const offsetToken = partsWithOffset.find((p) => p.type === 'timeZoneName');
+        if (!offsetToken) {
+          return null;
+        }
+        const offsetMatch = offsetToken.value.match(/GMT([+-]\d{1,2})(?::?(\d{2}))?/);
+        if (!offsetMatch) {
+          return null;
+        }
+        const offsetSign = offsetMatch[1].startsWith('-') ? -1 : 1;
+        const offsetHours = Math.abs(parseInt(offsetMatch[1], 10));
+        const offsetMinutes = offsetMatch[2] ? parseInt(offsetMatch[2], 10) : 0;
+        const totalOffsetMinutes = offsetSign * (offsetHours * 60 + offsetMinutes);
+        return baseUtc - totalOffsetMinutes * 60_000;
+      }
+
+      function resetFallbackState() {
+        if (fallbackCenterId !== null) {
+          fallbackCenterId = null;
+          fallbackBtn.classList.remove('fallback-active');
+          fallbackBtn.textContent = 'Lifetime membership';
+          fallbackBtn.setAttribute('aria-pressed', 'false');
+        }
+      }
+
+      function toggleFallback() {
+        if (fallbackCenterId === 1) {
+          resetFallbackState();
+          return;
+        }
+        fallbackCenterId = 1;
+        fallbackBtn.classList.add('fallback-active');
+        fallbackBtn.textContent = 'Lifetime membership active';
+        fallbackBtn.setAttribute('aria-pressed', 'true');
+        dateInput.value = '';
+      }
+
+      function activateAdminMode() {
+        numberInput.value = '0';
+        numberInput.focus();
+      }
+
       function generateQr() {
-        const numberValue = document.getElementById('number-input').value.trim();
+        const numberValue = numberInput.value.trim();
         if (!numberValue) {
           alert('Don\'t be a jerk');
           return;
         }
-        const data = "client_id=" + String(numberValue) + "&center_id=1&time=" + Date.now().toString();
+
+        let centerTimestamp = fallbackCenterId;
+        if (centerTimestamp === null) {
+          const dateValue = dateInput.value;
+          if (!dateValue) {
+            alert('Select membership expiration date');
+            return;
+          }
+          centerTimestamp = dateToRomeTimestamp(dateValue);
+          if (centerTimestamp === null) {
+            alert('The selected date is not valid');
+            return;
+          }
+        }
+
+        const data = "client_id=" + String(numberValue) + "&center_id=" + centerTimestamp.toString() + "&time=" + Date.now().toString();
         const canvas = document.getElementById('qr-canvas');
         if (!qr) {
           qr = new QRious({ element: canvas, size: 256, value: data });
@@ -207,7 +349,11 @@
         }
         document.getElementById('qr-container').style.display = 'flex';
       }
-      document.getElementById('generate-btn').addEventListener('click', generateQr);
+
+      fallbackBtn.addEventListener('click', toggleFallback);
+      adminBtn.addEventListener('click', activateAdminMode);
+      dateInput.addEventListener('input', resetFallbackState);
+      generateBtn.addEventListener('click', generateQr);
       // set current year in the footer
       document.getElementById('year').textContent = new Date().getFullYear();
     })();

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex,nofollow">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Notebook Merger</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #0f172a;
+      --muted: #475569;
+      --card: #f8fafc;
+      --border: #e2e8f0;
+      --brand: #2563eb;
+      --brand-weak: #dbeafe;
+      --radius: 18px;
+      --shadow: 0 8px 30px rgba(2, 6, 23, 0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --fg: #e5e7eb;
+        --muted: #9aa4b2;
+        --card: #0f172a;
+        --border: #1f2937;
+        --brand: #60a5fa;
+        --brand-weak: #1e293b;
+        --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      }
+    }
+    html, body {
+      height: 100%;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+            Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      backdrop-filter: saturate(140%) blur(6px);
+      background: color-mix(in oklab, var(--bg) 85%, transparent);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+    header .container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--brand-weak);
+      box-shadow: inset 0 0 0 1px var(--border);
+      font-weight: 800;
+      color: var(--brand);
+    }
+    h1 {
+      font-size: clamp(24px, 4vw, 36px);
+      line-height: 1.2;
+      margin: 8px 0 0;
+    }
+    .lead {
+      color: var(--muted);
+      margin: 6px 0 0 0;
+    }
+    main {
+      padding: 32px 0 40px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    fieldset {
+      border: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 16px;
+    }
+    .inputs {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-weight: 600;
+    }
+    input[type="file"],
+    input[type="text"] {
+      padding: 10px 12px;
+      font-size: 15px;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) / 2);
+      background: var(--card);
+      color: var(--fg);
+      box-sizing: border-box;
+    }
+    input[type="file"]::-webkit-file-upload-button {
+      padding: 8px 14px;
+      margin-right: 12px;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) / 2);
+      background: var(--bg);
+      color: var(--fg);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .hint {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .primary-btn {
+      align-self: flex-start;
+      padding: 10px 22px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--card);
+      background: var(--brand);
+      border: none;
+      border-radius: calc(var(--radius) / 2);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
+    }
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+    }
+    .primary-btn:active {
+      transform: translateY(0);
+    }
+    .status {
+      font-size: 15px;
+      color: var(--muted);
+    }
+    .status.success {
+      color: #15803d;
+    }
+    .status.error {
+      color: #dc2626;
+    }
+    footer {
+      padding: 32px 0 24px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    footer a {
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">NB</div>
+      <div>
+        <h1>Notebook merger</h1>
+        <p class="lead">Merge two <code>.ipynb</code> files in the browser.</p>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="container">
+      <article class="card" aria-labelledby="merge-title">
+        <div>
+          <h2 id="merge-title">Configure the merge</h2>
+          <p class="hint">The first notebook stays as the base. The second notebook is appended after an optional markdown separator.</p>
+        </div>
+        <fieldset>
+          <div class="inputs">
+            <label>
+              Base notebook
+              <input id="base-input" type="file" accept=".ipynb,application/json" />
+            </label>
+            <label>
+              Notebook to append
+              <input id="append-input" type="file" accept=".ipynb,application/json" />
+            </label>
+          </div>
+          <label>
+            Final filename
+            <input id="output-name" type="text" placeholder="merged.ipynb" autocomplete="off" />
+            <span class="hint">Downloaded locally — nothing gets uploaded.</span>
+          </label>
+          <label>
+            Markdown separator (optional)
+            <input id="separator-text" type="text" placeholder="" value="" />
+            <span class="hint">Leave empty to skip the separator cell.</span>
+          </label>
+          <button id="merge-btn" type="button" class="primary-btn">Merge and download</button>
+          <p id="status" class="status" role="status" aria-live="polite"></p>
+        </fieldset>
+      </article>
+    </div>
+  </main>
+  <footer>
+    <div class="container">
+      When you need to run this from the terminal, keep the original <code>nbformat</code> script to mirror the exact flow.
+    </div>
+  </footer>
+  <script>
+    (function () {
+      const baseInput = document.getElementById('base-input');
+      const appendInput = document.getElementById('append-input');
+      const outputNameInput = document.getElementById('output-name');
+      const separatorInput = document.getElementById('separator-text');
+      const mergeButton = document.getElementById('merge-btn');
+      const status = document.getElementById('status');
+
+      function setStatus(message, tone) {
+        status.textContent = message;
+        status.classList.remove('success', 'error');
+        if (tone) {
+          status.classList.add(tone);
+        }
+      }
+
+      function normaliseFileName(raw) {
+        const trimmed = (raw || '').trim();
+        if (!trimmed) {
+          return 'merged-notebook.ipynb';
+        }
+        return trimmed.toLowerCase().endsWith('.ipynb') ? trimmed : trimmed + '.ipynb';
+      }
+
+      function parseNotebook(content) {
+        const data = JSON.parse(content);
+        if (!Array.isArray(data.cells)) {
+          throw new Error('Invalid notebook format: missing the "cells" array.');
+        }
+        return data;
+      }
+
+      async function readFile(file) {
+        const text = await file.text();
+        return parseNotebook(text);
+      }
+
+      function createSeparatorCell(text) {
+        if (!text) {
+          return null;
+        }
+        return {
+          cell_type: 'markdown',
+          metadata: {},
+          source: [String(text)]
+        };
+      }
+
+      function buildMergedNotebook(base, append, separatorText) {
+        const merged = JSON.parse(JSON.stringify(base));
+        const separatorCell = createSeparatorCell(separatorText);
+        const cellsToAppend = separatorCell ? [separatorCell, ...append.cells] : append.cells;
+        merged.cells = Array.isArray(merged.cells) ? merged.cells.concat(cellsToAppend) : cellsToAppend;
+        if (typeof append.nbformat === 'number') {
+          merged.nbformat = Math.max(merged.nbformat || 4, append.nbformat);
+        }
+        if (typeof append.nbformat_minor === 'number') {
+          merged.nbformat_minor = Math.max(merged.nbformat_minor || 0, append.nbformat_minor);
+        }
+        return merged;
+      }
+
+      async function handleMerge() {
+        if (!baseInput.files.length || !appendInput.files.length) {
+          setStatus('Select both notebook files before continuing.', 'error');
+          return;
+        }
+        try {
+          setStatus('Reading notebooks…');
+          const [base, append] = await Promise.all([
+            readFile(baseInput.files[0]),
+            readFile(appendInput.files[0])
+          ]);
+          const merged = buildMergedNotebook(base, append, separatorInput.value.trim());
+          const filename = normaliseFileName(outputNameInput.value);
+          const blob = new Blob([JSON.stringify(merged, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+          setStatus('Done! Notebook downloaded as ' + filename + '.', 'success');
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message || 'Something went wrong while merging the notebooks.', 'error');
+        }
+      }
+
+      mergeButton.addEventListener('click', handleMerge);
+    })();
+  </script>
+</body>
+</html>

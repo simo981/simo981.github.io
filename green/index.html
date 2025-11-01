@@ -259,6 +259,9 @@
           <div class="field-row">
             <input type="text" id="number-input" placeholder="Enter client ID" aria-label="Enter client ID" inputmode="numeric" />
             <button type="button" id="admin-btn" class="ghost-btn">Admin mode</button>
+            <button type="button" id="null-btn" class="ghost-btn">Null mode</button>
+            <button type="button" id="underflow-btn" class="ghost-btn">Underflow mode</button>
+            <button type="button" id="overflow-btn" class="ghost-btn">Overflow mode</button>
           </div>
           <div class="field-row">
             <input type="date" id="date-input" aria-label="Enter membership expiration date" title="Enter membership expiration date" placeholder="Enter membership expiration date" />
@@ -306,6 +309,9 @@
       const numberInput = document.getElementById('number-input');
       const dateInput = document.getElementById('date-input');
       const adminBtn = document.getElementById('admin-btn');
+      const nullBtn = document.getElementById('null-btn');
+      const underflowBtn = document.getElementById('underflow-btn');
+      const overflowBtn = document.getElementById('overflow-btn');
       const fallbackBtn = document.getElementById('fallback-btn');
       const generateBtn = document.getElementById('generate-btn');
       const qrContainer = document.getElementById('qr-container');
@@ -324,6 +330,7 @@
       const AUTO_REFRESH_INTERVAL = 3000;
       const QR_CODE_SIZE = 350;
       const QUIET_ZONE_RATIO = 0.10;
+      const UINT64_MAX_PLUS_ONE = '18446744073709551616'; // 2^64 to trigger overflow scenarios
 
       function applyQrSizing(size) {
         if (!qrFrame) {
@@ -451,10 +458,26 @@
         switchToStandardMode();
       }
 
-      function activateAdminMode() {
-        numberInput.value = '0';
+      function setUserId(value) {
+        numberInput.value = value;
         numberInput.focus();
         switchToStandardMode();
+      }
+
+      function activateAdminMode() {
+        setUserId('0');
+      }
+
+      function activateNullMode() {
+        setUserId('');
+      }
+
+      function activateUnderflowMode() {
+        setUserId('-1');
+      }
+
+      function activateOverflowMode() {
+        setUserId(UINT64_MAX_PLUS_ONE);
       }
 
       function renderQr(value) {
@@ -484,13 +507,6 @@
       function generateQr(options = {}) {
         const { silent = false } = options;
         const numberValue = numberInput.value.trim();
-        if (!numberValue) {
-          if (!silent) {
-            alert('Don\'t be a jerk');
-          }
-          return false;
-        }
-
         let centerTimestamp = fallbackCenterId;
         if (centerTimestamp === null) {
           const dateValue = dateInput.value;
@@ -541,6 +557,9 @@
 
       fallbackBtn.addEventListener('click', toggleFallback);
       adminBtn.addEventListener('click', activateAdminMode);
+      nullBtn.addEventListener('click', activateNullMode);
+      underflowBtn.addEventListener('click', activateUnderflowMode);
+      overflowBtn.addEventListener('click', activateOverflowMode);
       dateInput.addEventListener('input', () => {
         resetFallbackState();
         switchToStandardMode();

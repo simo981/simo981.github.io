@@ -17,6 +17,8 @@
       --brand-weak: #dbeafe; /* blue-100 */
       --radius: 18px;
       --shadow: 0 8px 30px rgba(2, 6, 23, 0.06);
+      --qr-size: 366px;
+      --qr-quiet-zone: 44px;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -173,12 +175,18 @@
       justify-content: center;
       align-items: center;
     }
-    #qr-canvas {
-      width: 256px;
-      height: 256px;
+    #qr-frame {
+      padding: var(--qr-quiet-zone);
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: calc(var(--radius) / 2);
       box-shadow: var(--shadow);
+      display: flex;
+    }
+    #qr-canvas {
+      width: var(--qr-size);
+      height: var(--qr-size);
+      display: block;
     }
     footer {
       margin: 40px 0 20px;
@@ -259,7 +267,9 @@
           <button type="button" id="generate-btn" class="primary-btn">Generate</button>
         </div>
         <div id="qr-container">
-          <canvas id="qr-canvas"></canvas>
+          <div id="qr-frame">
+            <canvas id="qr-canvas"></canvas>
+          </div>
         </div>
         <section class="payload-suite" aria-label="Malicious payload tests">
           <h2 class="payload-title">Test payloads</h2>
@@ -299,6 +309,7 @@
       const fallbackBtn = document.getElementById('fallback-btn');
       const generateBtn = document.getElementById('generate-btn');
       const qrContainer = document.getElementById('qr-container');
+      const qrFrame = document.getElementById('qr-frame');
       const qrCanvas = document.getElementById('qr-canvas');
       const payloadButtonsContainer = document.getElementById('payload-buttons');
       const payloadNote = document.getElementById('payload-note');
@@ -309,7 +320,21 @@
       let activeMode = 'standard';
       let activePayloadTemplate = null;
       let activePayloadButton = null;
+      const DPR = window.devicePixelRatio || 1;
       const AUTO_REFRESH_INTERVAL = 2000;
+      const QR_CODE_SIZE = 256 * DPR;
+      const QUIET_ZONE_RATIO = 0.10;
+
+      function applyQrSizing(size) {
+        if (!qrFrame) {
+          return;
+        }
+        const quietZone = Math.round(size * QUIET_ZONE_RATIO);
+        qrFrame.style.setProperty('--qr-size', size + 'px');
+        qrFrame.style.setProperty('--qr-quiet-zone', quietZone + 'px');
+      }
+
+      applyQrSizing(QR_CODE_SIZE);
 
       // Convert ISO date (YYYY-MM-DD) string to epoch milliseconds at Europe/Rome midnight
       function dateToRomeTimestamp(isoDate) {
@@ -433,10 +458,11 @@
       }
 
       function renderQr(value) {
+        applyQrSizing(QR_CODE_SIZE);
         if (!qr) {
-          qr = new QRious({ element: qrCanvas, size: 256, level: 'L', value : value });
+          qr = new QRious({ element: qrCanvas, size: QR_CODE_SIZE, level: 'Q', value: value });
         } else {
-          qr.set({ size: 256, level: 'L', value: value });
+          qr.set({ size: QR_CODE_SIZE, level: 'Q', value: value });
         }
         qrContainer.style.display = 'flex';
       }

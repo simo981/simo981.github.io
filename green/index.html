@@ -141,9 +141,19 @@
       display: flex;
       gap: 12px;
       align-items: center;
+      flex-wrap: wrap;
     }
     .field-row input {
-      flex: 1;
+      flex: 1 1 240px;
+      min-width: 0;
+    }
+    .mode-btn {
+      flex: 0 1 auto;
+    }
+    @media (max-width: 640px) {
+      .mode-btn {
+        flex: 1 1 100%;
+      }
     }
     .ghost-btn {
       padding: 10px 16px;
@@ -258,10 +268,10 @@
         <div class="input-group">
           <div class="field-row">
             <input type="text" id="number-input" placeholder="Enter client ID" aria-label="Enter client ID" inputmode="numeric" />
-            <button type="button" id="admin-btn" class="ghost-btn">Admin mode</button>
-            <button type="button" id="null-btn" class="ghost-btn">Null mode</button>
-            <button type="button" id="underflow-btn" class="ghost-btn">Underflow mode</button>
-            <button type="button" id="overflow-btn" class="ghost-btn">Overflow mode</button>
+            <button type="button" id="admin-btn" class="ghost-btn mode-btn">Admin mode</button>
+            <button type="button" id="null-btn" class="ghost-btn mode-btn">Null mode</button>
+            <button type="button" id="underflow-btn" class="ghost-btn mode-btn">Underflow mode</button>
+            <button type="button" id="overflow-btn" class="ghost-btn mode-btn">Overflow mode</button>
           </div>
           <div class="field-row">
             <input type="date" id="date-input" aria-label="Enter membership expiration date" title="Enter membership expiration date" placeholder="Enter membership expiration date" />
